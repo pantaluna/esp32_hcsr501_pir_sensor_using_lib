@@ -40,8 +40,9 @@ git add .
 git commit -m "Updated"
 
 git push --set-upstream origin master
+git config credential.helper store
 
-git tag --annotate v0.81 --message "First tag"
+git tag --annotate v0.82 --message "Second tag"
 git push origin --tags
 
 git describe --tags --dirt
