@@ -10,17 +10,20 @@ extern "C" {
 
 /**
  * Data structs
+ *
+ * @doc https://www.geeksforgeeks.org/mutex-vs-semaphore/
+ *
  */
 typedef struct {
-    bool is_init;
-    gpio_num_t data_gpio_num;
-    SemaphoreHandle_t gpio_isr_mux;
+        bool is_init;
+        gpio_num_t data_gpio_num;
+        SemaphoreHandle_t isr_semaphore;
 } mjd_hcsr501_config_t;
 
 #define MJD_HCSR501_CONFIG_DEFAULT() { \
     .is_init = false, \
-    .data_gpio_num = GPIO_NUM_0, \
-    .gpio_isr_mux = NULL \
+    .data_gpio_num = GPIO_NUM_MAX, \
+    .isr_semaphore = NULL \
 }
 
 /**

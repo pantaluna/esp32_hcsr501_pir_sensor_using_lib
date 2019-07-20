@@ -15,14 +15,14 @@ static const char TAG[] = "mjd_hcsr501";
 /*
  * INTERRUPT
  */
-static SemaphoreHandle_t _hcsr501_config_gpio_isr_mux;
+static SemaphoreHandle_t _hcsr501_config_isr_semaphore;
 
-void IRAM_ATTR sensor_gpio_isr_handler(void* arg) {
+void sensor_gpio_isr_handler(void* arg) {
     // @param pxHigherPriorityTaskWoken to pdTRUE if giving the semaphore caused a task to unblock, and the unblocked task has a priority higher than the currently running task.
     //        If xSemaphoreGiveFromISR() sets this value to pdTRUE then a context switch should be requested before the interrupt is exited.
     //        portYIELD_FROM_ISR() wakes up the imu_task immediately (instead of on next FreeRTOS tick).
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(_hcsr501_config_gpio_isr_mux, &xHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(_hcsr501_config_isr_semaphore, &xHigherPriorityTaskWoken);
     if (xHigherPriorityTaskWoken == pdTRUE) {
         portYIELD_FROM_ISR();
     }
@@ -46,27 +46,28 @@ esp_err_t mjd_hcsr501_init(mjd_hcsr501_config_t* param_ptr_config) {
         goto cleanup;
     }
 
-    // WAIT 5 seconds so the PIR Sensor can calibrate itself!
-    // todo Production: increase it to 60 seconds
+    // WAIT 5 seconds after power-on so the PIR Sensor can calibrate itself!
+    //      @important     + Keep the area clear of human movement.
+    //      @important      + False positives might occur during calibration.
     vTaskDelay(RTOS_DELAY_5SEC);
 
     // Semaphore
-    // !Clone locally (so the ISR can reference the semaphore handle).
+    // @important Clone the semaphore locally (so the ISR can reference the semaphore handle).
     // @doc Binary semaphores created using xSemaphoreCreateBinary() are created in a state such that the semaphore must first be 'given' before it can be 'taken'!
-    // @doc The required RAM is automatically allocated from the FreeRTOS heap (opposed the local stack!).
-    param_ptr_config->gpio_isr_mux = xSemaphoreCreateBinary();
-    if (param_ptr_config->gpio_isr_mux == NULL) {
+    // @doc The required RAM is automatically allocated from the FreeRTOS heap (opposed to from the local stack).
+    param_ptr_config->isr_semaphore = xSemaphoreCreateBinary();
+    if (param_ptr_config->isr_semaphore == NULL) {
         f_retval = ESP_FAIL;
-        ESP_LOGE(TAG, "ABORT. xSemaphoreCreateBinary() failed (insufficient FreeRTOS heap available) | err %i %s", f_retval,
-                esp_err_to_name(f_retval));
+        ESP_LOGE(TAG, "ABORT. xSemaphoreCreateBinary() failed | err %i %s", f_retval, esp_err_to_name(f_retval));
         // GOTO
         goto cleanup;
     }
-    _hcsr501_config_gpio_isr_mux = param_ptr_config->gpio_isr_mux;
+    _hcsr501_config_isr_semaphore = param_ptr_config->isr_semaphore;
 
     // GPIO
     //   @doc GPIO_INTR_POSEDGE = GPIO interrupt type: rising edge (LOW->HIGH)
-    gpio_config_t io_conf = { 0 };
+    gpio_config_t io_conf =
+        { 0 };
     io_conf.pin_bit_mask = (1ULL << param_ptr_config->data_gpio_num);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE; // @important HC-SR501 data pin
@@ -126,8 +127,9 @@ esp_err_t mjd_hcsr501_deinit(mjd_hcsr501_config_t* param_ptr_config) {
     gpio_uninstall_isr_service(); // @returns void
 
     // SEMAPHORE
-    param_ptr_config->gpio_isr_mux = NULL;
-    _hcsr501_config_gpio_isr_mux = param_ptr_config->gpio_isr_mux;
+    vSemaphoreDelete(param_ptr_config->isr_semaphore);
+    param_ptr_config->isr_semaphore = NULL;
+    _hcsr501_config_isr_semaphore = param_ptr_config->isr_semaphore;
 
     // Mark OK
     param_ptr_config->is_init = false;

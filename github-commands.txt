@@ -18,6 +18,7 @@ git add .
 git commit -m "First commit"
 git remote add origin https://github.com/pantaluna/${DIR_REPO_NAME}.git
 
+git config credential.helper store
 git push --set-upstream origin master
 
 git remote show origin
@@ -42,7 +43,7 @@ git commit -m "Updated"
 git config credential.helper store
 git push --set-upstream origin master
 
-git tag --annotate v1.3 --message "Upgraded for ESP-IDF v3.2 of April 2019"
+git tag --annotate v1.4 --message "Update documentation"
 git push origin --tags
 
 git describe --tags --dirt

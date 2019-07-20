@@ -1,9 +1,15 @@
 ## Project Description
-This project demonstrates the basics of using the MJD component "mjd_hcsr501" for the HC-SR051 PIR Human Infrared sensor. Use it to get insights in how to use this component.
+This project demonstrates the basics of using the ESP-IDF component "mjd_hcsr501".
 
-The project uses the ISR handler of the mjd_hcsr501 component, and routes the GPIO input pin receiving the signal from the HC-SR501 PIR sensor to the GPIO Output pin of the on-board LED.
+The component supports various PIR motion sensor models:
 
-Goto the component "components/mjd_hcsr501" for installation and usage/wiring instructions, data sheets, FAQ, photo's, etc. for the hardware and software.
+- HC-SR501 PIR motion sensor module.
+- MH-SR602 Micro PIR motion sensor module.
+- AM312 Mini PIR motion sensor module.
+
+Go to the component "components/mjd_hcsr501" for installation and usage/wiring instructions, data sheets, FAQ, photo's, etc. for the hardware and software.
+
+The project uses the ISR handler of the mjd_hcsr501 component to detect movement (interrupt on positive edge), and also routes the GPIO input pin receiving the signal from the PIR sensor to the GPIO Output pin of the on-board LED.
 
 
 
@@ -11,10 +17,8 @@ Goto the component "components/mjd_hcsr501" for installation and usage/wiring in
 
 ### Hardware
 
-- A decent ESP development board. I suggest to buy a popular development board with good technical documentation and a significant user base. Examples: [Adafruit HUZZAH32](https://www.adafruit.com/product/3405),  [Espressif ESP32-DevKitC](http://espressif.com/en/products/hardware/esp32-devkitc/overview), [Pycom WiPy](https://pycom.io/hardware/), [Wemos D32](https://wiki.wemos.cc/products:d32:d32).
-- The peripherals that are used in the project.
-  @tip The README of each component contains a section "Shop Products".
-  @example A Bosch BME280 meteo sensor breakout board.
+- A decent ESP development board. I suggest to buy a popular development board with good technical documentation and a significant user base. Examples: [LOLIN D32](https://wiki.wemos.cc/products:d32:d32),  [Adafruit HUZZAH32](https://www.adafruit.com/product/3405),  [Espressif ESP32-DevKitC](http://espressif.com/en/products/hardware/esp32-devkitc/overview), [Pycom](https://pycom.io/hardware/).
+- The peripherals that are used in the project. The README of each component contains a section "Shop Products".
 
 ### Software: ESP-IDF v3.2
 
@@ -23,7 +27,7 @@ Goto the component "components/mjd_hcsr501" for installation and usage/wiring in
 ```
 mkdir ~/esp
 cd    ~/esp
-git clone -b v3.3 --recursive https://github.com/espressif/esp-idf.git esp-idf-v3.2
+git clone -b v3.2 --recursive https://github.com/espressif/esp-idf.git esp-idf-v3.2
 ```
 
 - A C language editor or the Eclipse IDE CDT (instructions also @ http://esp-idf.readthedocs.io/en/latest/get-started/index.html).
@@ -31,8 +35,10 @@ git clone -b v3.3 --recursive https://github.com/espressif/esp-idf.git esp-idf-v
 
 
 ## Running the example
-- Run `make menuconfig` and modify for example the GPIO PIN# that you want to use.
+- Run `make menuconfig` and modify for example the GPIO PIN# that you want to use (section "Project Configuration").
 - Run `make flash monitor` to build and upload the example to your board and connect to its serial terminal.
+
+
 
 ## Reference: the ESP32 MJD Starter Kit SDK
 
